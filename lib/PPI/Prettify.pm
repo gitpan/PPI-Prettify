@@ -117,7 +117,7 @@ skins, no JavaScript required!
 
 =head1 VERSION
 
-version 0.01
+version 0.02
 
 =head1 SYNOPSIS
 
@@ -189,8 +189,8 @@ Takes a hashref consisting of $code and an optional debug flag. Every Perl code
 token is given a <span> tag that corresponds to the tags used by Google's
 prettify.js library. If debug => 1, then every token's span tag will be given a
 title attribute with the value of the originating PPI::Token class. This can
-help if you want to override the mappings in $MARKUP_RULES. See L<SYNOPSIS> for
-examples.
+help if you want to override the mappings in $MARKUP_RULES. See L</SYNOPSIS>
+for examples.
 
 =head1 INTERNAL FUNCTIONS
 
@@ -210,7 +210,7 @@ Determines the PPI::Token type.
 
 =head1 THANKS
 
-Thanks to Adam Kaplan for developing L<PPI::Document>, without which this
+Thanks to Adam Kennedy for developing L<PPI::Document>, without which this
 module would not be possible.
 
 =head1 SEE ALSO
