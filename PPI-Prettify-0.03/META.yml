@@ -3,7 +3,6 @@ abstract: 'A Perl HTML pretty printer to use with Google prettify CSS skins, no 
 author:
   - 'David Farrell <sillymoos@cpan.org> L<PerlTricks.com|http://perltricks.com>'
 build_requires:
-  Data::Dumper: 0
   Test::More: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.30
@@ -17,8 +16,9 @@ name: PPI-Prettify
 requires:
   Carp: 0
   Exporter: 0
+  HTML::Entities: 0
   PPI::Document: 0
   base: 0
   strict: 0
   warnings: 0
-version: 0.02
+version: 0.03

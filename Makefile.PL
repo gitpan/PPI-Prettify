@@ -23,16 +23,16 @@ my %WriteMakefileArgs = (
   "PREREQ_PM" => {
     "Carp" => 0,
     "Exporter" => 0,
+    "HTML::Entities" => 0,
     "PPI::Document" => 0,
     "base" => 0,
     "strict" => 0,
     "warnings" => 0
   },
   "TEST_REQUIRES" => {
-    "Data::Dumper" => 0,
     "Test::More" => 0
   },
-  "VERSION" => "0.02",
+  "VERSION" => "0.03",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -41,8 +41,8 @@ my %WriteMakefileArgs = (
 
 my %FallbackPrereqs = (
   "Carp" => 0,
-  "Data::Dumper" => 0,
   "Exporter" => 0,
+  "HTML::Entities" => 0,
   "PPI::Document" => 0,
   "Test::More" => 0,
   "base" => 0,

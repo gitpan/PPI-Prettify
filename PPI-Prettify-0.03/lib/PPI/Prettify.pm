@@ -1,6 +1,9 @@
 package PPI::Prettify;
 use strict;
 use warnings;
+use PPI::Document;
+use Carp 'croak';
+use HTML::Entities;
 
 # ABSTRACT: A Perl HTML pretty printer to use with Google prettify CSS skins, no JavaScript required!
 
@@ -9,9 +12,6 @@ BEGIN {
     use base qw(Exporter);
     our @EXPORT = qw(prettify $MARKUP_RULES);
 }
-
-use PPI::Document;
-use Carp 'croak';
 
 # A regex of all Perl built-in function names
 my $FUNCTIONSREGEX =
@@ -88,7 +88,7 @@ sub _toHTML {
     $title = qq( title="$type") if $debug;
     return
         qq(<span class="$MARKUP_RULES->{$type}"$title>)
-      . $token->content
+      . encode_entities( $token->content )
       . qq(</span>);
 }
 
@@ -117,7 +117,7 @@ skins, no JavaScript required!
 
 =head1 VERSION
 
-version 0.02
+version 0.03
 
 =head1 SYNOPSIS
 
