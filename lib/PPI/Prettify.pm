@@ -132,12 +132,6 @@ BEGIN {
     our @EXPORT = ('example_sub');
 }
 
-=head2 example_sub
-
-example_sub is an example sub the subroutine markup;
-
-=cut
-
 sub example_sub {
     my $self = shift;
     $self->length;
@@ -256,7 +250,7 @@ skins, no JavaScript required!
 
 =head1 VERSION
 
-version 0.04
+version 0.05
 
 =head1 SYNOPSIS
 
@@ -296,6 +290,9 @@ tokenize the code, it's more accurate than prettify.js.
 L<PPI::Prettify> exports prettify() and the $MARKUP_RULES hashref which is used
 to match PPI::Token classes to the class attribute given to that token's <span>
 tag. You can modify $MARKUP_RULES to tweak the mapping if you require it.
+
+I wrote an article with more detail about the module for:
+L<PerlTricks.com|http://perltricks.com/article/60/2014/1/13/Display-beautiful-Perl-code-in-HTML-without-JavaScript>.
 
 =head1 MOTIVATION
 
@@ -342,8 +339,10 @@ for examples.
 
 =head2 getExampleHTML
 
-Returns a completely marked up HTML string with built-in CSS to demo the syntax
-highlighting capabilites of PPI::Prettify.
+Returns an HTML document as a string with built-in CSS to demo the syntax
+highlighting capabilites of PPI::Prettify. At the command line:
+
+    $ perl -MPPI::Prettify -e 'print PPI::Prettify::getExampleHTML()' > example.html
 
 =head1 INTERNAL FUNCTIONS
 
