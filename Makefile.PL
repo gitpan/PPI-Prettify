@@ -21,10 +21,12 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "PPI::Prettify",
   "PREREQ_PM" => {
+    "B::Keywords" => 0,
     "Carp" => 0,
     "Exporter" => 0,
     "HTML::Entities" => 0,
     "PPI::Document" => 0,
+    "Perl::Critic::Utils" => 0,
     "base" => 0,
     "strict" => 0,
     "warnings" => 0
@@ -32,7 +34,7 @@ my %WriteMakefileArgs = (
   "TEST_REQUIRES" => {
     "Test::More" => 0
   },
-  "VERSION" => "0.03",
+  "VERSION" => "0.04",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -40,10 +42,12 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
+  "B::Keywords" => 0,
   "Carp" => 0,
   "Exporter" => 0,
   "HTML::Entities" => 0,
   "PPI::Document" => 0,
+  "Perl::Critic::Utils" => 0,
   "Test::More" => 0,
   "base" => 0,
   "strict" => 0,

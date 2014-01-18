@@ -1,82 +1,99 @@
 use strict;
 use warnings;
-use Test::More;
+use Test::More tests => 13;
 use PPI::Prettify;
 use PPI::Document;
 
-my $code;
-read( main::DATA, $code, 1000 );
+read( main::DATA, my $code, 1000 );
 my $doc    = PPI::Document->new( \$code );
 my @tokens = $doc->tokens;
 
-ok( expectedOutput() eq prettify( { code => $code } ), 'Test expected output' );
+# for debugging
+if ( @ARGV and $ARGV[0] == 1 ) {
+    print "Dumping tokens and values ...\n";
+    for ( my $i = 0 ; $i < @tokens ; $i++ ) {
+        print $i . ' '
+          . ref( $tokens[$i] ) . ' '
+          . $tokens[$i]->content . ' '
+          . PPI::Prettify::_determineToken( $tokens[$i] ) . "\n";
+    }
+}
 
 eval { prettify() };
 ok( $@, 'Test failure on missing code arg' );
-
-ok( $tokens[0]->isa('PPI::Token::Comment'),     'Token tree starting type' );
-ok( $tokens[99]->isa('PPI::Token::Whitespace'), 'Token tree ending type' );
-ok( 'PPI::Token::Function' eq PPI::Prettify::_determineToken( $tokens[66] ),
-    '_decorate identifies foreach as a keyword type' );
-ok( 'PPI::Token::Word' eq PPI::Prettify::_determineToken( $tokens[84] ),
-    '_decorate identifies _toHTML as a word type' );
-
-done_testing();
-
-sub expectedOutput {
-    return q!<pre class="prettyprint"><span class="com">#SOME COMMENTS
-</span><span class="pln">
-</span><span class="com">=pod
-    some pod
-=cut
-</span><span class="pln">
-</span><span class="kwd">use</span><span class="pln"> </span><span class="atn">strict</span><span class="pln">;</span><span class="pln">
-</span><span class="kwd">use</span><span class="pln"> </span><span class="atn">warnings</span><span class="pln">;</span><span class="pln">
-</span><span class="kwd">package</span><span class="pln"> </span><span class="atn">PPI::Prettify</span><span class="pln">;</span><span class="pln">
-</span><span class="pln">
-</span><span class="kwd">use</span><span class="pln"> </span><span class="atn">PPI::Document</span><span class="pln">;</span><span class="pln">
-</span><span class="kwd">use</span><span class="pln"> </span><span class="atn">feature</span><span class="pln"> </span><span class="str">&#39;say&#39;</span><span class="pln">;</span><span class="pln">
-</span><span class="pln">
-</span><span class="kwd">our</span><span class="pln"> </span><span class="typ">$MARKUP_RULES</span><span class="pln"> </span><span class="pln">=</span><span class="pln"> </span><span class="pln">{</span><span class="pln">
-</span><span class="str">&#39;PPI::Token::Whitespace&#39;</span><span class="pln"> </span><span class="pln">=&gt;</span><span class="pln"> </span><span class="str">&#39;pln&#39;</span><span class="pln">,</span><span class="pln">
-</span><span class="str">&#39;PPI::Token::Comment&#39;</span><span class="pln"> </span><span class="pln">=&gt;</span><span class="pln"> </span><span class="str">&#39;com&#39;</span><span class="pln">,</span><span class="pln">
-</span><span class="pln">}</span><span class="pln">;</span><span class="pln">
-</span><span class="pln">
-</span><span class="kwd">sub</span><span class="pln"> </span><span class="atn">_decorate</span><span class="pln"> </span><span class="pln">{</span><span class="pln">
-</span><span class="pln">    </span><span class="kwd">foreach</span><span class="pln"> </span><span class="kwd">my</span><span class="pln"> </span><span class="typ">$token</span><span class="pln"> </span><span class="pln">(</span><span class="typ">$_</span><span class="pln">[</span><span class="dec">0</span><span class="pln">]</span><span class="pln">-&gt;</span><span class="atn">tokens</span><span class="pln">)</span><span class="pln"> </span><span class="pln">{</span><span class="pln">
-</span><span class="pln">        </span><span class="atn">_toHTML</span><span class="pln">(</span><span class="typ">$token</span><span class="pln">)</span><span class="pln">;</span><span class="pln">
-</span><span class="pln">    </span><span class="pln">}</span><span class="pln">
-</span><span class="pln">
-</span><span class="pln">}</span><span class="pln">
-</span><span class="pln">
-</span><span class="dec">1</span><span class="pln">;</span><span class="pln">
-</span></pre>!;
-}
+ok( 'PPI::Token::Keyword' eq PPI::Prettify::_determineToken( $tokens[0] ),
+    'Package keyword identified as keyword' );
+ok(
+    'PPI::Token::Word::Package' eq PPI::Prettify::_determineToken( $tokens[2] ),
+    'Package name identified as package'
+);
+ok( 'PPI::Token::Function' eq PPI::Prettify::_determineToken( $tokens[10] ),
+    'use identified as function' );
+ok( 'PPI::Token::Pragma' eq PPI::Prettify::_determineToken( $tokens[12] ),
+    'warnings identified as pragma' );
+ok(
+    'PPI::Token::KeywordFunction' eq
+      PPI::Prettify::_determineToken( $tokens[28] ),
+    'BEGIN identified as keyword'
+);
+ok( 'PPI::Token::Pragma' eq PPI::Prettify::_determineToken( $tokens[41] ),
+    'base identified as pragma' );
+ok( 'PPI::Token::Symbol' eq PPI::Prettify::_determineToken( $tokens[49] ),
+    '@EXPORT identified as symbol' );
+ok( 'PPI::Token::Keyword' eq PPI::Prettify::_determineToken( $tokens[63] ),
+    'sub identified as keyword type' );
+ok( 'PPI::Token::Symbol' eq PPI::Prettify::_determineToken( $tokens[82] ),
+    'length identified as symbol not built-in' );
+ok( 'PPI::Token::Symbol' eq PPI::Prettify::_determineToken( $tokens[191] ),
+    'STDOUT identified as symbol' );
+ok( 'PPI::Token::Quote' eq PPI::Prettify::_determineToken( $tokens[200] ),
+    'uc identified as quote not built-in' );
+ok( 'PPI::Token::Separator' eq PPI::Prettify::_determineToken( $tokens[212] ),
+    '__END__ identified as separator' );
 
 __DATA__
-#SOME COMMENTS
-
-=pod
-    some pod
-=cut
-
+package Test::Package;
 use strict;
 use warnings;
-package PPI::Prettify;
-
-use PPI::Document;
 use feature 'say';
+use Example::Module;
 
-our $MARKUP_RULES = {
-'PPI::Token::Whitespace' => 'pln',
-'PPI::Token::Comment' => 'com',
-};
-
-sub _decorate {
-    foreach my $token ($_[0]->tokens) {
-        _toHTML($token);
-    }
-
+BEGIN {
+    require Exporter;
+    use base qw(Exporter);
+    our @EXPORT = ('example_sub');
 }
 
+=head2 example_sub
+
+example_sub is an example sub the subroutine markup;
+
+=cut
+
+sub example_sub {
+    my $self = shift;
+    $self->length;
+    return $self->do_something;
+}
+
+# this is a comment for do_something, an example method
+
+sub do_something {
+    my ($self) = @_;
+    if ('dog' eq "cat") {
+        say 1 * 564;
+    }
+    else {
+        say 100 % 101;
+    }
+    return 'a string';
+}
+
+# example variables
+my @array = qw/1 2 3/;
+my $scalar = 'a plain string';
+
+print STDOUT $scalar;
+example_sub({ uc => 'test uc is string not BIF'});
 1;
+__END__

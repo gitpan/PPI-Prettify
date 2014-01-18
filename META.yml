@@ -14,11 +14,13 @@ meta-spec:
   version: 1.4
 name: PPI-Prettify
 requires:
+  B::Keywords: 0
   Carp: 0
   Exporter: 0
   HTML::Entities: 0
   PPI::Document: 0
+  Perl::Critic::Utils: 0
   base: 0
   strict: 0
   warnings: 0
-version: 0.03
+version: 0.04

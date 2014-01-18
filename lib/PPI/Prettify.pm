@@ -4,73 +4,171 @@ use warnings;
 use PPI::Document;
 use Carp 'croak';
 use HTML::Entities;
+use Perl::Critic::Utils
+  qw/is_method_call is_subroutine_name is_package_declaration/;
+use B::Keywords;
 
 # ABSTRACT: A Perl HTML pretty printer to use with Google prettify CSS skins, no JavaScript required!
 
 BEGIN {
     require Exporter;
     use base qw(Exporter);
-    our @EXPORT = qw(prettify $MARKUP_RULES);
+    our @EXPORT    = qw(prettify $MARKUP_RULES);
+    our @EXPORT_OK = ('getExampleHTML');
 }
-
-# A regex of all Perl built-in function names
-my $FUNCTIONSREGEX =
-  qr/^(AUTOLOAD|abs|accept|alarm|and|atan2|BEGIN|bind|binmode|bless|break|CHECK|caller|chdir|chmod|chomp|chop|chown|chr|chroot|close|closedir|cmp|connect|continue|cos|crypt|DESTROY|__DATA__|dbmclose|dbmopen|default|defined|delete|die|do|dump|END|__END__|each|else|elseif|elsif|endgrent|endhostent|endnetent|endprotoent|endpwent|endservent|eof|eq|eval|evalbytes|exec|exists|exit|exp|__FILE__|fc|fcntl|fileno|flock|for|foreach|fork|format|formline|ge|getc|getgrent|getgrgid|getgrnam|gethostbyaddr|gethostbyname|gethostent|getlogin|getnetbyaddr|getnetbyname|getnetent|getpeername|getpgrp|getppid|getpriority|getprotobyname|getprotobynumber|getprotoent|getpwent|getpwnam|getpwuid|getservbyname|getservbyport|getservent|getsockname|getsockopt|given|glob|gmtime|goto|grep|gt|hex|INIT|if|import|index|int|ioctl|join|keys|kill|__LINE__|last|lc|lcfirst|le|length|link|listen|local|localtime|lock|log|lstat|lt|m|map|mkdir|msgctl|msgget|msgrcv|msgsnd|my|ne|next|no|not|oct|open|opendir|or|ord|our|__PACKAGE__|pack|package|pipe|pop|pos|print|printf|prototype|push|q|qq|qr|quotemeta|qw|qx|rand|read|readdir|readline|readlink|readpipe|recv|redo|ref|rename|require|reset|return|reverse|rewinddir|rindex|rmdir|__SUB__|s|say|scalar|seek|seekdir|select|semctl|semget|semop|send|setgrent|sethostent|setnetent|setpgrp|setpriority|setprotoent|setpwent|setservent|setsockopt|shift|shmctl|shmget|shmread|shmwrite|shutdown|sin|sleep|socket|socketpair|sort|splice|split|sprintf|sqrt|srand|stat|state|study|sub|substr|symlink|syscall|sysopen|sysread|sysseek|system|syswrite|tell|telldir|tie|tied|time|times|tr|truncate|UNITCHECK|uc|ucfirst|umask|undef|unless|unlink|unpack|unshift|untie|until|use|utime|values|vec|wait|waitpid|wantarray|warn|when|while|write|-X|x|xor|y)$/x;
 
 # The mapping of PPI::Token class to span attribute type. Is exported and overridable
 our $MARKUP_RULES = {
-    'PPI::Token::Whitespace'            => 'pln',
+    'PPI::Token::ArrayIndex'            => 'var',
+    'PPI::Token::Attribute'             => 'atn',
+    'PPI::Token::BOM'                   => 'pln',
+    'PPI::Token::Cast'                  => 'var',
     'PPI::Token::Comment'               => 'com',
-    'PPI::Token::Pod'                   => 'com',
-    'PPI::Token::Number'                => 'dec',
-    'PPI::Token::Number::Binary'        => 'dec',
-    'PPI::Token::Number::Octal'         => 'dec',
-    'PPI::Token::Number::Hex'           => 'dec',
-    'PPI::Token::Number::Float'         => 'dec',
-    'PPI::Token::Number::Exp'           => 'dec',
-    'PPI::Token::Number::Version'       => 'dec',
-    'PPI::Token::Word'                  => 'atn',
+    'PPI::Token::DashedWord'            => 'pln',
+    'PPI::Token::Data'                  => 'com',
+    'PPI::Token::End'                   => 'com',
     'PPI::Token::Function'              => 'kwd',
-    'PPI::Token::DashedWord'            => 'type',
-    'PPI::Token::Symbol'                => 'typ',
+    'PPI::Token::HereDoc'               => 'str',
+    'PPI::Token::Keyword'               => 'lit',
+    'PPI::Token::KeywordFunction'       => 'kwd',
+    'PPI::Token::Label'                 => 'lit',
     'PPI::Token::Magic'                 => 'typ',
-    'PPI::Token::ArrayIndex'            => 'lit',
-    'PPI::Token::Operator'              => 'pln',
+    'PPI::Token::Number'                => 'atv',
+    'PPI::Token::Number::Binary'        => 'atv',
+    'PPI::Token::Number::Exp'           => 'atv',
+    'PPI::Token::Number::Float'         => 'atv',
+    'PPI::Token::Number::Hex'           => 'atv',
+    'PPI::Token::Number::Octal'         => 'atv',
+    'PPI::Token::Number::Version'       => 'atv',
+    'PPI::Token::Operator'              => 'pun',
+    'PPI::Token::Pod'                   => 'com',
+    'PPI::Token::Pragma'                => 'kwd',
+    'PPI::Token::Prototype'             => 'var',
     'PPI::Token::Quote'                 => 'str',
-    'PPI::Token::Quote::Single'         => 'str',
     'PPI::Token::Quote::Double'         => 'str',
-    'PPI::Token::Quote::Literal'        => 'str',
     'PPI::Token::Quote::Interpolate'    => 'str',
+    'PPI::Token::Quote::Literal'        => 'str',
+    'PPI::Token::Quote::Single'         => 'str',
     'PPI::Token::QuoteLike'             => 'str',
-    'PPI::Token::QuoteLike::Backtick'   => 'pun',
+    'PPI::Token::QuoteLike::Backtick'   => 'fun',
     'PPI::Token::QuoteLike::Command'    => 'fun',
+    'PPI::Token::QuoteLike::Readline'   => 'str',
     'PPI::Token::QuoteLike::Regexp'     => 'str',
     'PPI::Token::QuoteLike::Words'      => 'str',
-    'PPI::Token::QuoteLike::Readline'   => 'str',
-    'PPI::Token::Regexp'                => 'lit',
-    'PPI::Token::Regexp::Match'         => 'lit',
-    'PPI::Token::Regexp::Substitute'    => 'lit',
-    'PPI::Token::Regexp::Transliterate' => 'lit',
-    'PPI::Token::HereDoc'               => 'com',
-    'PPI::Token::Cast'                  => 'fun',
-    'PPI::Token::Structure'             => 'pln',
-    'PPI::Token::Label'                 => 'lit',
-    'PPI::Token::Separator'             => 'pun',
-    'PPI::Token::Data'                  => 'lit',
-    'PPI::Token::End'                   => 'lit',
-    'PPI::Token::Prototype'             => 'fun',
-    'PPI::Token::Attribute'             => 'var',
+    'PPI::Token::Regexp'                => 'str',
+    'PPI::Token::Regexp::Match'         => 'str',
+    'PPI::Token::Regexp::Substitute'    => 'str',
+    'PPI::Token::Regexp::Transliterate' => 'str',
+    'PPI::Token::Separator'             => 'kwd',
+    'PPI::Token::Structure'             => 'pun',
+    'PPI::Token::Symbol'                => 'typ',
     'PPI::Token::Unknown'               => 'pln',
+    'PPI::Token::Whitespace'            => 'pln',
+    'PPI::Token::Word'                  => 'pln',
+    'PPI::Token::Word::Package'         => 'atn',
 };
 
 sub prettify {
-    my $args = shift;
+    my ($args) = @_;
     croak "Missing mandatory code argument in args passed to prettify()."
       unless exists $args->{code} and defined $args->{code};
     my $doc = eval { return PPI::Document->new( \$args->{code} ) };
-    croak $@ if $@;
-    croak "Error creating PPI::Document" unless $doc;
+    croak "Error creating PPI::Document" unless $doc or $@;
     return _decorate( $doc, $args->{debug} || 0 );
+}
+
+sub getExampleHTML {
+    my $htmlStart = <<'EOF';
+<!DOCTYPE html>
+<html>
+<head><title>Example PPI::Prettify Output using the vim Desert scheme</title></head>
+<body>
+<style>
+/* desert scheme ported from vim to google prettify */
+pre.prettyprint { display: block; background-color: #333; color: #fff }
+pre .str { color: #ffa0a0 } /* string  - pink */
+pre .kwd { color: #f0e68c; font-weight: bold }
+pre .com { color: #87ceeb } /* comment - skyblue */
+pre .typ { color: #98fb98 } /* type    - lightgreen */
+pre .lit { color: #cd5c5c } /* literal - darkred */
+pre .pun { color: #fff }    /* punctuation */
+pre .pln { color: #fff }    /* plaintext */
+pre .tag { color: #f0e68c; font-weight: bold } /* html/xml tag    - lightyellow */
+pre .atn { color: #bdb76b; font-weight: bold } /* attribute name  - khaki */
+pre .atv { color: #ffa0a0 } /* attribute value - pink */
+pre .dec { color: #98fb98 } /* decimal         - lightgreen */
+
+pre.prettyprint {
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    -o-border-radius: 8px;
+    -ms-border-radius: 8px;
+    -khtml-border-radius: 8px;
+    border-radius: 8px;
+    width: 95%;
+    margin: 0 auto 10px;
+    padding: 1em;
+    white-space: pre-wrap;
+    border: 0px solid #888;
+}
+
+</style>
+<body>
+EOF
+    my $htmlEnd = <<'EOF';
+</body></html>
+EOF
+
+    my $code = <<'EOF';
+package Test::Package;
+use strict;
+use warnings;
+use feature 'say';
+use Example::Module;
+
+BEGIN {
+    require Exporter;
+    use base qw(Exporter);
+    our @EXPORT = ('example_sub');
+}
+
+=head2 example_sub
+
+example_sub is an example sub the subroutine markup;
+
+=cut
+
+sub example_sub {
+    my $self = shift;
+    $self->length;
+    return $self->do_something;
+}
+
+# this is a comment for do_something, an example method
+
+sub do_something {
+    my ($self) = @_;
+    if ('dog' eq "cat") {
+        say 1 * 564;
+    }
+    else {
+        say 100 % 101;
+    }
+    return 'a string';
+}
+
+# example variables
+my @array = qw/1 2 3/;
+my $scalar = 'a plain string';
+
+print STDOUT $scalar;
+example_sub({ uc => 'test uc is string not BIF'});
+1;
+__END__
+This is just sample code to demo the markup
+EOF
+    my $markup = prettify( { code => $code, debug => 1 } );
+    return $htmlStart . $markup . $htmlEnd;
 }
 
 sub _decorate {
@@ -92,12 +190,53 @@ sub _toHTML {
       . qq(</span>);
 }
 
+# code adapted from PPI::HTML and Perl::Critic::Utils
+
 sub _determineToken {
-    my $token = shift;
-    if (    $token->isa('PPI::Token::Word')
-        and $token->content =~ $FUNCTIONSREGEX )
-    {
-        return 'PPI::Token::Function';
+    my ($token) = @_;
+    if ( ref($token) eq 'PPI::Token::Word' ) {
+        if ( $token->snext_sibling and $token->snext_sibling->content eq '=>' )
+        {
+            return 'PPI::Token::Quote';
+        }
+        my $parent  = $token->parent;
+        my $content = $token->content;
+        if ( $parent->isa('PPI::Statement::Include') ) {
+            return 'PPI::Token::Pragma' if $content eq $parent->pragma;
+        }
+        elsif ( $parent->isa('PPI::Statement::Variable') ) {
+            if ( $content =~ /^(?:my|local|our)$/ ) {
+                return 'PPI::Token::KeywordFunction';
+            }
+        }
+        elsif ( $parent->isa('PPI::Statement::Compound') ) {
+            if ( $content =~ /^(?:if|else|elsif|unless|for|foreach|while|my)$/ )
+            {
+                return 'PPI::Token::KeywordFunction';
+            }
+        }
+        elsif ( $parent->isa('PPI::Statement::Given') ) {
+            if ( $content eq 'given' ) {
+                return 'PPI::Token::KeywordFunction';
+            }
+        }
+        elsif ( $parent->isa('PPI::Statement::When') ) {
+            if ( $content =~ /^(?:when|default)$/ ) {
+                return 'PPI::Token::KeywordFunction';
+            }
+        }
+        elsif ( $parent->isa('PPI::Statement::Scheduled') ) {
+            return 'PPI::Token::KeywordFunction';
+        }
+        return 'PPI::Token::Symbol' if is_method_call($token);
+        return 'PPI::Token::Symbol' if is_subroutine_name($token);
+        return 'PPI::Token::Keyword'
+          if grep /^$token$/, @B::Keywords::Barewords;
+        return 'PPI::Token::Function'
+          if grep /^$token$/, @B::Keywords::Functions;
+        return 'PPI::Token::Symbol'
+          if grep /^$token$/, @B::Keywords::Filehandles;
+        return 'PPI::Token::Word::Package' if is_package_declaration($token);
     }
     return ref($token);
 }
@@ -117,7 +256,7 @@ skins, no JavaScript required!
 
 =head1 VERSION
 
-version 0.03
+version 0.04
 
 =head1 SYNOPSIS
 
@@ -173,6 +312,15 @@ prettify.js so I could reuse the existing CSS developed for it.
 
 =item *
 
+What constitutes a function and a keyword is somewhat arbitrary in Perl.
+L<PPI::Prettify> mostly uses L<B::Keywords> to help distinguish functions and
+keywords. However, some words such as "if", "my" and "BEGIN" are given a
+special class of "PPI::Token::KeywordFunction" which can be overridden in
+$MARKUP_RULES, should you wish to display these as keywords instead of
+functions.
+
+=item *
+
 This module does not yet process Perl code samples with heredocs correctly.
 
 =item *
@@ -191,6 +339,11 @@ prettify.js library. If debug => 1, then every token's span tag will be given a
 title attribute with the value of the originating PPI::Token class. This can
 help if you want to override the mappings in $MARKUP_RULES. See L</SYNOPSIS>
 for examples.
+
+=head2 getExampleHTML
+
+Returns a completely marked up HTML string with built-in CSS to demo the syntax
+highlighting capabilites of PPI::Prettify.
 
 =head1 INTERNAL FUNCTIONS
 
