@@ -32,6 +32,7 @@
             "Carp" : "0",
             "Exporter" : "0",
             "HTML::Entities" : "0",
+            "List::MoreUtils" : "0",
             "PPI::Document" : "0",
             "Perl::Critic::Utils" : "0",
             "base" : "0",
@@ -46,6 +47,6 @@
       }
    },
    "release_status" : "stable",
-   "version" : "0.05"
+   "version" : "0.06"
 }
 

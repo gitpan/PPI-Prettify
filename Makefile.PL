@@ -25,6 +25,7 @@ my %WriteMakefileArgs = (
     "Carp" => 0,
     "Exporter" => 0,
     "HTML::Entities" => 0,
+    "List::MoreUtils" => 0,
     "PPI::Document" => 0,
     "Perl::Critic::Utils" => 0,
     "base" => 0,
@@ -34,7 +35,7 @@ my %WriteMakefileArgs = (
   "TEST_REQUIRES" => {
     "Test::More" => 0
   },
-  "VERSION" => "0.05",
+  "VERSION" => "0.06",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -46,6 +47,7 @@ my %FallbackPrereqs = (
   "Carp" => 0,
   "Exporter" => 0,
   "HTML::Entities" => 0,
+  "List::MoreUtils" => 0,
   "PPI::Document" => 0,
   "Perl::Critic::Utils" => 0,
   "Test::More" => 0,

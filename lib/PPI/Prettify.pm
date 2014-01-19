@@ -7,6 +7,7 @@ use HTML::Entities;
 use Perl::Critic::Utils
   qw/is_method_call is_subroutine_name is_package_declaration/;
 use B::Keywords;
+use List::MoreUtils 'any';
 
 # ABSTRACT: A Perl HTML pretty printer to use with Google prettify CSS skins, no JavaScript required!
 
@@ -77,7 +78,7 @@ sub prettify {
     return _decorate( $doc, $args->{debug} || 0 );
 }
 
-sub getExampleHTML {
+sub get_example_html {
     my $htmlStart = <<'EOF';
 <!DOCTYPE html>
 <html>
@@ -168,14 +169,14 @@ EOF
 sub _decorate {
     my $prettyPrintedCode = '<pre class="prettyprint">';
     foreach my $token ( $_[0]->tokens ) {
-        $prettyPrintedCode .= _toHTML( $token, $_[1] );
+        $prettyPrintedCode .= _to_html( $token, $_[1] );
     }
     return $prettyPrintedCode .= '</pre>';
 }
 
-sub _toHTML {
+sub _to_html {
     my ( $token, $debug ) = @_;
-    my $type  = _determineToken($token);
+    my $type  = _determine_token($token);
     my $title = "";
     $title = qq( title="$type") if $debug;
     return
@@ -186,7 +187,7 @@ sub _toHTML {
 
 # code adapted from PPI::HTML and Perl::Critic::Utils
 
-sub _determineToken {
+sub _determine_token {
     my ($token) = @_;
     if ( ref($token) eq 'PPI::Token::Word' ) {
         if ( $token->snext_sibling and $token->snext_sibling->content eq '=>' )
@@ -226,11 +227,21 @@ sub _determineToken {
         return 'PPI::Token::Symbol' if is_subroutine_name($token);
         return 'PPI::Token::Keyword'
           if grep /^$token$/, @B::Keywords::Barewords;
-        return 'PPI::Token::Function'
-          if grep /^$token$/, @B::Keywords::Functions;
         return 'PPI::Token::Symbol'
           if grep /^$token$/, @B::Keywords::Filehandles;
         return 'PPI::Token::Word::Package' if is_package_declaration($token);
+
+        # get next significant token
+        if ( $token->next_token ) {
+            my $next_token = $token->next_token;
+            while ( !$next_token->significant and $next_token->next_token ) {
+                $next_token = $next_token->next_token;
+            }
+            return 'PPI::Token::Quote'
+              if $next_token->content eq '}' and !$token->sprevious_sibling;
+        }
+        return 'PPI::Token::Function'
+          if grep /^$token$/, @B::Keywords::Functions;
     }
     return ref($token);
 }
@@ -250,7 +261,7 @@ skins, no JavaScript required!
 
 =head1 VERSION
 
-version 0.05
+version 0.06
 
 =head1 SYNOPSIS
 
@@ -269,7 +280,7 @@ version 0.05
         <span class="atn">PPI::Prettify</span>
         <span class="pln">;</span>
 
-    my $htmlDebug = prettify({ code => $codeSample, debug => 1 }); 
+    my $htmlDebug = prettify({ code => $codeSample, debug => 1 });
     # with PPI::Token class, e.g. for "use PPI::Prettify;":
         <span class="kwd" title="PPI::Token::Function">use</span>
         <span class="pln" title="PPI::Token::Whitespace"> </span>
@@ -351,12 +362,12 @@ highlighting capabilites of PPI::Prettify. At the command line:
 Iterates through the tokens of a L<PPI::Document>, marking up each token with a
 <span> tag.
 
-=head2 _toHTML
+=head2 _to_html
 
 Marks up a token with a span tag with the appropriate class attribute and the
 PPI::Token class.
 
-=head2 _determineToken
+=head2 _determine_token
 
 Determines the PPI::Token type.
 

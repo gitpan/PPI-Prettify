@@ -1,5 +1,8 @@
 Revision history for PPI::Prettify
 
+0.06    18/01/2014
+        -Fixed matching of functions inside brackets { } per ticket #92217.
+
 0.05    18/01/2014
         -Fixed POD heredoc interpolation bug.
 

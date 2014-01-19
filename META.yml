@@ -18,9 +18,10 @@ requires:
   Carp: 0
   Exporter: 0
   HTML::Entities: 0
+  List::MoreUtils: 0
   PPI::Document: 0
   Perl::Critic::Utils: 0
   base: 0
   strict: 0
   warnings: 0
-version: 0.05
+version: 0.06
