@@ -4,7 +4,7 @@
       "David Farrell <sillymoos@cpan.org> L<PerlTricks.com|http://perltricks.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.010, CPAN::Meta::Converter version 2.133380",
+   "generated_by" : "Dist::Zilla version 5.015, CPAN::Meta::Converter version 2.141170",
    "license" : [
       "perl_5"
    ],
@@ -47,6 +47,14 @@
       }
    },
    "release_status" : "stable",
-   "version" : "0.06"
+   "resources" : {
+      "homepage" : "https://github.com/sillymoose/ppi-prettify",
+      "repository" : {
+         "type" : "git",
+         "url" : "https://github.com/sillymoose/ppi-prettify.git",
+         "web" : "https://github.com/sillymoose/ppi-prettify"
+      }
+   },
+   "version" : "0.07"
 }
 

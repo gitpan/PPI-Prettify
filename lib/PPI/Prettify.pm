@@ -261,7 +261,7 @@ skins, no JavaScript required!
 
 =head1 VERSION
 
-version 0.06
+version 0.07
 
 =head1 SYNOPSIS
 
@@ -371,15 +371,19 @@ PPI::Token class.
 
 Determines the PPI::Token type.
 
-=head1 THANKS
+=head1 REPOSITORY
 
-Thanks to Adam Kennedy for developing L<PPI::Document>, without which this
-module would not be possible.
+L<https://github.com/sillymoose/ppi-prettify>
 
 =head1 SEE ALSO
 
 L<PPI::HTML> is another prettifier for Perl code samples that allows the
 embedding of CSS directly into the HTML generation.
+
+=head1 THANKS
+
+Thanks to Adam Kennedy for developing L<PPI::Document>, without which this
+module would not be possible.
 
 =head1 AUTHOR
 
